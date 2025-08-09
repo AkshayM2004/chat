@@ -1,223 +1,227 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Chatbot</title>
-  <style>
-    /* Reset and base */
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0; padding: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: #f0f2f5;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WhatsApp Style Chatbot</title>
+<style>
+  /* Reset */
+  * {
+    box-sizing: border-box;
+  }
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #ece5dd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-    /* Chat container */
+  /* Chat container */
+  .chat-container {
+    width: 100%;
+    max-width: 420px;
+    height: 90vh;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    overflow: hidden;
+  }
+
+  /* Header (WhatsApp style green) */
+  .chat-header {
+    background: #075e54;
+    color: white;
+    padding: 15px 20px;
+    font-weight: 700;
+    font-size: 1.25rem;
+    user-select: none;
+  }
+
+  /* Messages area */
+  .messages {
+    flex-grow: 1;
+    padding: 15px;
+    background: #ece5dd;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Chat bubble common */
+  .message {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 7.5px;
+    font-size: 1rem;
+    line-height: 1.3;
+    word-wrap: break-word;
+    position: relative;
+    animation: fadeIn 0.25s ease forwards;
+  }
+
+  /* User messages on right */
+  .message.user {
+    background: #dcf8c6;
+    align-self: flex-end;
+    border-bottom-right-radius: 0;
+  }
+  /* Tail on user bubble */
+  .message.user::after {
+    content: "";
+    position: absolute;
+    right: -7px;
+    bottom: 0;
+    width: 0;
+    height: 0;
+    border-top: 10px solid #dcf8c6;
+    border-left: 7px solid transparent;
+  }
+
+  /* Bot messages on left */
+  .message.bot {
+    background: white;
+    align-self: flex-start;
+    border-bottom-left-radius: 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  }
+  /* Tail on bot bubble */
+  .message.bot::after {
+    content: "";
+    position: absolute;
+    left: -7px;
+    bottom: 0;
+    width: 0;
+    height: 0;
+    border-top: 10px solid white;
+    border-right: 7px solid transparent;
+  }
+
+  /* Input area fixed at bottom */
+  .input-area {
+    background: #f0f0f0;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    border-top: 1px solid #ddd;
+  }
+  .input-area input[type="text"] {
+    flex-grow: 1;
+    padding: 12px 16px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    outline-offset: 2px;
+    outline-color: #075e54;
+  }
+  .input-area button {
+    margin-left: 12px;
+    background: #075e54;
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(7,94,84,0.6);
+    transition: background-color 0.3s ease;
+  }
+  .input-area button:hover:not(:disabled) {
+    background: #0a8d81;
+  }
+  .input-area button:disabled {
+    background: #7cc9c0;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* Scrollbar style */
+  .messages::-webkit-scrollbar {
+    width: 6px;
+  }
+  .messages::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.1);
+    border-radius: 3px;
+  }
+
+  /* Fade-in animation */
+  @keyframes fadeIn {
+    from {opacity: 0; transform: translateY(8px);}
+    to {opacity: 1; transform: translateY(0);}
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 480px) {
     .chat-container {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      max-width: 450px;
-      height: 80vh;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-      overflow: hidden;
+      height: 100vh;
+      border-radius: 0;
+      max-width: 100vw;
     }
-
-    /* Header */
-    .chat-header {
-      padding: 15px 20px;
-      background: #0084ff;
-      color: white;
-      font-weight: 600;
-      font-size: 1.2rem;
-      text-align: center;
-      user-select: none;
-    }
-
-    /* Messages window */
-    .messages {
-      flex-grow: 1;
-      padding: 20px;
-      overflow-y: auto;
-      background: #e5ddd5;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    /* Each message bubble */
-    .message {
-      max-width: 75%;
-      padding: 12px 16px;
-      border-radius: 20px;
-      font-size: 0.95rem;
-      line-height: 1.3;
-      word-wrap: break-word;
-      box-shadow: 0 1px 1.5px rgba(0,0,0,0.15);
-      user-select: text;
-      animation: fadeIn 0.3s ease forwards;
-    }
-
-    /* User message styling */
-    .message.user {
-      background: #0084ff;
-      color: white;
-      align-self: flex-end;
-      border-bottom-right-radius: 4px;
-    }
-
-    /* Bot message styling */
-    .message.bot {
-      background: #fff;
-      color: #222;
-      align-self: flex-start;
-      border-bottom-left-radius: 4px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    }
-
-    /* Input area */
-    .input-area {
-      display: flex;
-      padding: 15px 20px;
-      border-top: 1px solid #ddd;
-      background: #f9f9f9;
-    }
-
-    input[type="text"] {
-      flex-grow: 1;
-      padding: 12px 16px;
-      font-size: 1rem;
-      border-radius: 20px;
-      border: 1px solid #ccc;
-      outline-offset: 2px;
-      outline-color: #0084ff;
-      transition: border-color 0.3s ease;
-    }
-    input[type="text"]:focus {
-      border-color: #0084ff;
-    }
-
-    button {
-      margin-left: 15px;
-      padding: 12px 25px;
-      font-size: 1rem;
-      background: #0084ff;
-      color: white;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,132,255,0.5);
-      transition: background-color 0.25s ease;
-    }
-    button:hover:not(:disabled) {
-      background: #005bbb;
-    }
-    button:disabled {
-      background: #a1c9ff;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    /* Scrollbar style */
-    .messages::-webkit-scrollbar {
-      width: 6px;
-    }
-    .messages::-webkit-scrollbar-thumb {
-      background: rgba(0,0,0,0.1);
-      border-radius: 3px;
-    }
-
-    /* Fade in animation */
-    @keyframes fadeIn {
-      from {opacity: 0; transform: translateY(8px);}
-      to {opacity: 1; transform: translateY(0);}
-    }
-
-    /* Responsive for small screens */
-    @media (max-width: 480px) {
-      .chat-container {
-        height: 90vh;
-        max-width: 100vw;
-        border-radius: 0;
-      }
-      input[type="text"] {
-        font-size: 0.95rem;
-      }
-      button {
-        font-size: 0.95rem;
-        padding: 12px 18px;
-      }
-    }
-  </style>
+  }
+</style>
 </head>
 <body>
-  <div class="chat-container">
-    <div class="chat-header">College Info Chatbot</div>
-    <div class="messages" id="messages" role="log" aria-live="polite"></div>
-    <form id="chat-form" class="input-area" autocomplete="off" aria-label="Send a message">
+  <div class="chat-container" role="main" aria-label="Chatbot conversation">
+    <header class="chat-header">College Info Chatbot</header>
+    <div class="messages" id="messages" aria-live="polite" aria-relevant="additions"></div>
+    <form id="chat-form" class="input-area" autocomplete="off" aria-label="Send message form">
       <input
         type="text"
         id="user-input"
         name="message"
-        placeholder="Ask about admissions, library, or hod_cs..."
+        placeholder="Type your question here..."
         required
         aria-required="true"
-        aria-describedby="instructions"
-        autocomplete="off"
         spellcheck="false"
       />
       <button type="submit" aria-label="Send message">Send</button>
     </form>
   </div>
 
-<script>
-  const messagesDiv = document.getElementById('messages');
-  const chatForm = document.getElementById('chat-form');
-  const userInput = document.getElementById('user-input');
+  <script>
+    const messagesDiv = document.getElementById('messages');
+    const chatForm = document.getElementById('chat-form');
+    const userInput = document.getElementById('user-input');
 
-  function addMessage(text, sender) {
-    const div = document.createElement('div');
-    div.classList.add('message', sender);
-    div.textContent = text;
-    messagesDiv.appendChild(div);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  }
-
-  chatForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const text = userInput.value.trim();
-    if (!text) return;
-
-    addMessage(text, 'user');
-    userInput.value = '';
-    userInput.disabled = true;
-    chatForm.querySelector('button').disabled = true;
-
-    try {
-      const response = await fetch(`https://chatbot-1-26vh.onrender.com/info?topic=${encodeURIComponent(text)}`);
-      if (!response.ok) {
-        addMessage("Sorry, I don't have information on that topic.", 'bot');
-      } else {
-        const data = await response.json();
-        addMessage(data.response, 'bot');
-      }
-    } catch (err) {
-      addMessage('Error connecting to server.', 'bot');
-    } finally {
-      userInput.disabled = false;
-      chatForm.querySelector('button').disabled = false;
-      userInput.focus();
+    function addMessage(text, sender) {
+      const div = document.createElement('div');
+      div.classList.add('message', sender);
+      div.textContent = text;
+      messagesDiv.appendChild(div);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
-  });
-</script>
+
+    chatForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const text = userInput.value.trim();
+      if (!text) return;
+
+      addMessage(text, 'user');
+      userInput.value = '';
+      userInput.disabled = true;
+      chatForm.querySelector('button').disabled = true;
+
+      try {
+        const res = await fetch(`https://chatbot-1-26vh.onrender.com/info?topic=${encodeURIComponent(text)}`);
+        if (!res.ok) {
+          addMessage("Sorry, I don't have information on that topic.", 'bot');
+        } else {
+          const data = await res.json();
+          addMessage(data.response, 'bot');
+        }
+      } catch {
+        addMessage('Error connecting to server.', 'bot');
+      } finally {
+        userInput.disabled = false;
+        chatForm.querySelector('button').disabled = false;
+        userInput.focus();
+      }
+    });
+  </script>
 </body>
 </html>
